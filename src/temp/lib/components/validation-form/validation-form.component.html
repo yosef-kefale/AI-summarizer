@@ -1,0 +1,29 @@
+<!-- <div>
+  <nz-radio-group [(ngModel)]="radioValue" (ngModelChange)="radioSelected($event)">
+    <label nz-radio nzValue="Accept">Accept</label>
+    <label nz-radio nzValue="Reject">Reject</label>
+  </nz-radio-group>
+</div> -->
+<div class="w-full">
+  <div>
+    <p class="mx-2 font-bold">Please select reason(s) for rejection</p>
+    <nz-checkbox-wrapper class="m-2" (nzOnChange)="checkboxSelected($event)">
+      <div nz-row *ngFor="let data of rejectionReasons">
+        <nz-card class="w-full">
+          <label nz-checkbox nzValue="{{ data.value }}">{{ data.label }}</label>
+        </nz-card>
+      </div>
+      <ng-container *ngIf="otherReasonsChecked" class="mx-1">
+        <nz-card class="w-full">
+          <p class="mx-2 font-bold">Please write your reason / justification here ...</p>
+          <textarea rows="6" nz-input [(ngModel)]="inputValue"></textarea>
+        </nz-card>
+      </ng-container>
+    </nz-checkbox-wrapper>
+  </div>
+</div>
+<div>
+  <button [disabled]="validateForm()" nz-button nzType="primary" (click)="onSubmit()">
+    <i nz-icon nzType="plus-circle" nzTheme="outline"></i>Save
+  </button>
+</div>

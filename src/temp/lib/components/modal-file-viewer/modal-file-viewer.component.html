@@ -1,0 +1,8 @@
+<iframe class="min-h-500" *ngIf="fileType === '.pdf'" [src]="sanitizedBase64File" width="100%" height="100%"></iframe>
+<img *ngIf="fileType !== '.pdf'" style="-webkit-user-select: none;" width="100%" height="100%" [src]="convertedBase64File" />
+
+<div *nzModalFooter>
+  <button nz-button nzType="secondary" (click)="onDestroy()">
+    Close
+  </button>
+</div>

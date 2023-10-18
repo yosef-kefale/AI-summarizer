@@ -1,0 +1,48 @@
+<nz-card class="mb-3" [nzTitle]="TitleTemplate" [nzExtra]="ExtraTemplate">
+    <ng-container >
+      <nz-table nzSize="small" #row nzSize="small" nzShowSizeChanger [nzFrontPagination]="false" [nzData]="investigators">
+        <thead>
+          <tr>
+            <th>{{ 'First Name' | translate }}</th>
+            <th>{{ 'Email' | translate }}</th>
+            <th style="width: 150px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let data of row.data; index as i; trackBy: trackBy">
+            <td>
+              {{ data?.firstName | locale }}
+            </td>
+            <td>
+              {{ data?.email }}
+            </td>
+            <td>
+              <!-- <div class="cursor-pointer float-right">
+                <button class="mr-4 w-6 h-6" nz-button nzType="primary" (click)="display(data, i)">
+                  <i nz-icon class="w-4 h-4" nzType="edit" nzTheme="outline"></i>
+                </button>
+                <button class="mr-2 w-6 h-6" nz-button nzType="danger" (click)="onDelete(data, i)">
+                  <i nz-icon class="w-4 h-4" nzType="delete" nzTheme="outline"></i>
+                </button>
+              </div> -->
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+    </ng-container>
+  </nz-card>
+  <!-- participant title template -->
+  <ng-template #TitleTemplate>
+    <ng-container>
+      {{ 'Add Investigator' | translate }}
+      <p class="text-xs font-normal">{{ 'List of investigator' | translate }}</p>
+    </ng-container>
+  </ng-template>
+  <!-- organization Assignment header button template -->
+  <ng-template #ExtraTemplate>
+    <ng-container >
+      <button nz-button nzType="primary" (click)="addInvestigator()">
+        <i nz-icon nzType="plus-circle" nzTheme="outline"></i>Assign
+      </button></ng-container>
+  </ng-template>
+

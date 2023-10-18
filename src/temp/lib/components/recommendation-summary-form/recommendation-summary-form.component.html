@@ -1,0 +1,289 @@
+<!-- Secretary Recommendation Summary -->
+<!-- The following is dispayed if there is no clarification requested -->
+<ng-container
+  *ngIf="
+    currentRole === 'complaint-secretary' && ((selectedSummary$ | async) === undefined || (selectedSummary$ | async)?.status === 'draft')
+  "
+>
+  <shared-empty-state
+    [title]="'Recommendation Request' | translate"
+    [subtitle]="'No Recommendation Request' | translate"
+    [class]="'h-full'"
+  ></shared-empty-state>
+</ng-container>
+<!-- TODO filter all except approved-->
+<ng-container>
+  <div *ngIf="currentRole === 'complaint-investigator'" [ngTemplateOutlet]="recommendationDetailTemplate"></div>
+  <div
+    *ngIf="currentRole === 'complaint-secretary' && (selectedSummary$ | async)?.status !== 'draft'"
+    [ngTemplateOutlet]="recommendationDetailTemplate"
+  ></div>
+</ng-container>
+
+<!-- *ngIf="currentRole === 'complaint-secretary' && letterDetail?.total > 0 && (letterDetail?.items)[0].status === 'submitted'" -->
+<ng-container *ngIf="currentRole === 'complaint-secretary' && ((selectedSummary$ | async)?.status === 'submitted' || (selectedSummary$ | async)?.status === 'secretaryadjustment' || (selectedSummary$ | async)?.status === 'boardadjustment' )">
+  <nz-card nzType="inner" nzSize="small" class="m-1" [nzTitle]="'Adjust or Approve Recommendation' | translate">
+    <form nz-form nzLayout="vertical" [formGroup]="summaryAdjustApproveForm">
+      <!-- remark with locale field -->
+      <ng-container>
+        <nz-form-label nzRequired>
+          <span>
+            {{ 'Remark' | translate }}
+          </span>
+        </nz-form-label>
+        <ng-container>
+          <nz-form-item>
+            <nz-form-control>
+              <quill-editor [formControl]="summaryAdjustApproveForm.controls['remark']" [styles]="{ height: '100px' }">
+                <div quill-editor-toolbar>
+                  <button type="button" class="ql-bold"></button>
+                  <button type="button" class="ql-italic"></button>
+                  <button type="button" class="ql-underline"></button>
+                  <button type="button" class="ql-list" value="ordered"></button>
+                  <button type="button" class="ql-list" value="bullet"></button>
+                </div>
+              </quill-editor>
+            </nz-form-control>
+          </nz-form-item>
+        </ng-container>
+      </ng-container>
+    </form>
+    <ng-container>
+      <div class="flex items-center justify-end my-2 mr-2">
+        <button [disabled]="!summaryAdjustApproveForm.valid" (click)="onSecretaryRecommendationAdjustStatusUpdate()" nz-button nzType="primary" class="mx-2">
+          <i nz-icon nzType="save" nzTheme="outline"></i> {{ 'Adjust' | translate }}
+        </button>
+        <button [disabled]="!summaryAdjustApproveForm.valid" (click)="onRecommendationApproveStatusUpdate()" nz-button nzType="primary" class="mx-2">
+          <i nz-icon nzType="save" nzTheme="outline"></i> {{ 'Approve' | translate }}
+        </button>
+      </div>
+      <!-- <div class="flex items-center justify-end my-2 mr-2">
+             <button nz-button nzType="primary" (click)="onRecommendationApprove()">
+      <i nz-icon nzType="plus-circle" nzTheme="outline"></i>Save
+    </button>
+          </div> -->
+    </ng-container>
+  </nz-card>
+</ng-container>
+
+<ng-container *ngIf="isCreateEditMode && currentRole === 'complaint-investigator' && ((selectedSummary$ | async) === undefined || isEditMode)">
+  <nz-card nzType="inner" nzSize="small" class="m-1" [nzTitle]="'Recommendation form' | translate">
+    <form nz-form nzLayout="vertical" [formGroup]="summaryForm">
+      <!-- name with locale field -->
+      <ng-container>
+        <nz-form-label nzRequired>
+          <span>
+            Case reference number
+          </span>
+        </nz-form-label>
+        <ng-container>
+          <nz-form-item>
+            <nz-form-control nzHasFeedback nzErrorTip="This field is required">
+              <input nz-input [formControlName]="'caseReferenceNumber'" />
+            </nz-form-control>
+          </nz-form-item>
+        </ng-container>
+      </ng-container>
+
+      <!-- Title with locale field -->
+      <ng-container>
+        <nz-form-label nzRequired>
+          <span>
+            Title
+          </span>
+        </nz-form-label>
+        <ng-container>
+          <nz-form-item>
+            <nz-form-control nzHasFeedback nzErrorTip="This field is required">
+              <input nz-input [formControlName]="'title'" />
+            </nz-form-control>
+          </nz-form-item>
+        </ng-container>
+      </ng-container>
+      <nz-divider class="my-2"></nz-divider>
+
+      <!-- Summary_of_the_Case with locale field -->
+      <ng-container>
+        <nz-form-label nzRequired>
+          <span>
+            {{ 'Summary of the case' | translate }}
+          </span>
+        </nz-form-label>
+        <ng-container>
+          <nz-form-item>
+            <nz-form-control>
+              <quill-editor [formControl]="summaryForm.controls['caseSummary']" [styles]="{ height: '100px' }">
+                <div quill-editor-toolbar>
+                  <button type="button" class="ql-bold"></button>
+                  <button type="button" class="ql-italic"></button>
+                  <button type="button" class="ql-underline"></button>
+                  <button type="button" class="ql-list" value="ordered"></button>
+                  <button type="button" class="ql-list" value="bullet"></button>
+                </div>
+              </quill-editor>
+            </nz-form-control>
+          </nz-form-item>
+        </ng-container>
+      </ng-container>
+      <!-- Secretariat's_Recommendation with locale field -->
+      <ng-container>
+        <nz-form-label nzRequired>
+          <span>
+            {{ "Secretariat's recommendation" | translate }}
+          </span>
+        </nz-form-label>
+        <ng-container>
+          <nz-form-item>
+            <nz-form-control>
+              <quill-editor [formControl]="summaryForm.controls['recommendation']" [styles]="{ height: '100px' }">
+                <div quill-editor-toolbar>
+                  <button type="button" class="ql-bold"></button>
+                  <button type="button" class="ql-italic"></button>
+                  <button type="button" class="ql-underline"></button>
+                  <button type="button" class="ql-list" value="ordered"></button>
+                  <button type="button" class="ql-list" value="bullet"></button>
+                </div>
+              </quill-editor>
+            </nz-form-control>
+          </nz-form-item>
+        </ng-container>
+      </ng-container>
+    </form>
+  </nz-card>
+  <!-- attachment with locale field -->
+  <div *ngIf="!recommendation">
+    <nz-upload [nzMultiple]="true" [(nzFileList)]="fileList" [nzBeforeUpload]="beforeUpload">
+      <div class="flex justify-between">
+        <button nz-button><i nz-icon nzType="upload"></i><span>Add File</span></button>
+        <div class="ml-3 text-xs text-gray-600">
+          <p>Only image and pdf is supported</p>
+        </div>
+      </div>
+    </nz-upload>
+  </div>
+
+  <ng-container>
+    <div>
+      <div class="flex items-center justify-end my-2 mr-2">
+        <button
+          *ngIf="(selectedSummary$ | async) === undefined"
+          [disabled]="!summaryForm.valid"
+          (click)="onDraftCreate()"
+          nz-button
+          nzType="primary"
+          class="mx-2"
+        >
+          <i nz-icon nzType="save" nzTheme="outline"></i> {{ 'Save As Draft' | translate }}
+        </button>
+        <button
+          *ngIf="(selectedSummary$ | async) === undefined"
+          [disabled]="!summaryForm.valid"
+          (click)="onSubmitCreate()"
+          nz-button
+          nzType="primary"
+          class="mx-2"
+        >
+          <i nz-icon nzType="save" nzTheme="outline"></i> {{ 'SYSTEM.Submit' | translate }}
+        </button>
+        <button
+          *ngIf="selectedSummary$ | async"
+          [disabled]="!summaryForm.valid"
+          (click)="onDraftUpdate()"
+          nz-button
+          nzType="primary"
+          class="mx-2"
+        >
+          <i nz-icon nzType="save" nzTheme="outline"></i> {{ 'Update' | translate }}
+        </button>
+        <button
+          *ngIf="selectedSummary$ | async"
+          [disabled]="!summaryForm.valid"
+          (click)="onSubmitUpdate()"
+          nz-button
+          nzType="primary"
+          class="mx-2"
+        >
+          <i nz-icon nzType="save" nzTheme="outline"></i> {{ 'SYSTEM.Submit' | translate }}
+        </button>
+      </div>
+      <!-- <div class="flex items-center justify-end my-2 mr-2">
+        <button [disabled]="!summaryForm.valid" (click)="onCreate()" nz-button nzType="primary" class="mx-2">
+          <i nz-icon nzType="save" nzTheme="outline"></i> {{ 'SYSTEM.Submit' | translate }}
+        </button>
+      </div> -->
+    </div>
+  </ng-container>
+</ng-container>
+
+<ng-template #recommendationDetailTemplate>
+  <ng-container *ngIf="selectedSummary$ | async">
+    <nz-card nzType="inner" nzSize="small" class="m-1" [nzTitle]="'Recommendation Summary' | translate" [nzExtra]="recommendationTemplate">
+      <div class="mb-1">
+        <span class="font-bold">{{ 'Title' | translate }}:</span>{{ (selectedSummary$ | async)?.title }}
+      </div>
+      <div class="mb-1" *ngIf="(selectedSummary$ | async)?.caseSummary">
+        <span class="font-bold">{{ 'Case Summary' }}</span>
+        <div [innerHTML]="(selectedSummary$ | async)?.caseSummary"></div>
+      </div>
+      <div class="mb-1" *ngIf="(selectedSummary$ | async)?.recommendationSummary">
+        <span class="font-bold">{{ 'Recommendation Summary' }}</span>
+        <div [innerHTML]="(selectedSummary$ | async)?.recommendationSummary"></div>
+      </div>
+      <div class="mb-1" *ngIf="(selectedSummary$ | async)?.remark">
+        <span class="font-bold">{{ 'Remark' }}</span>
+        <div [innerHTML]="(selectedSummary$ | async)?.remark"></div>
+      </div>
+      <!-- <div [innerHTML]="(selectedComplain$ | async)?.contentBody"></div> -->
+      <div class="mt-2 ml-7" *ngIf="selectedSummary$ | async">
+        <div *ngFor="let attach of (selectedSummary$ | async)?.attachments">
+          <div (click)="openFile(attach)">
+            <span class="cursor-pointer"><b>Attachment:</b> {{ attach?.file_name }}</span>
+            <!-- <img src="{{ attachmentEndPoint }}/{{ file?.file_path }}"
+                          class="h-32 w-32 cursor-pointer"
+                          alt="{{ file?.file_path }}" /> -->
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-between px-6 py-1 mt-2 text-xs text-gray-600 bg-gray-100 border-t border-dashed">
+        <div>
+          <i nz-icon nzType="clock-circle" nzTheme="outline"> </i>
+          <span>{{ ' Status ' | translate }}:</span>
+          {{ (selectedSummary$ | async)?.status }}
+        </div>
+        <div>
+          <i nz-icon nzType="tag" nzTheme="outline"></i>
+          <span>{{ 'Created Date' | translate }}:</span>
+          {{ (selectedSummary$ | async)?.createdOn | date }}
+        </div>
+        <div *ngIf="(letterDetail?.items)[0].status === 'approved'">
+          <i nz-icon nzType="tag" nzTheme="outline"></i>
+          <span>{{ 'Approved Date' | translate }}:</span>
+          {{ (selectedSummary$ | async)?.approvedOn | date }}
+        </div>
+      </div>
+    </nz-card>
+  </ng-container>
+</ng-template>
+
+<ng-template #recommendationTemplate>
+  <ng-container
+    *ngIf="
+      currentRole === 'complaint-investigator' &&
+      ((selectedSummary$ | async).status === 'draft' ||
+        (selectedSummary$ | async)?.status === 'secretaryadjustment' ||
+        (selectedSummary$ | async)?.status === 'boardadjustment')
+    "
+  >
+    <ng-container>
+      <button
+        nz-button
+        [style.background-color]="'#0073CF'"
+        [style.color]="'white'"
+        [style.border-color]="'#0073CF'"
+        (click)="onRecommendationEdit(true)"
+      >
+        <i nz-icon nzType="edit" nzTheme="outline"></i>Edit
+      </button>
+    </ng-container>
+  </ng-container>
+</ng-template>

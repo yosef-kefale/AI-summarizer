@@ -1,0 +1,49 @@
+<ng-container *ngIf="viewMode === 'list'">
+  <nz-card class="mx-2 mb-3" [nzTitle]="'Escalated Complain List' | translate">
+    <div>
+      <nz-table
+        #basicTable
+        nzSize="small"
+        nzSize="small"
+        nzShowSizeChanger
+        [nzFrontPagination]="true"
+        [nzData]="tableData$ | async"
+        [nzLoading]="escalatedItemsLoading$ | async"
+        [nzTotal]="totalComplain$ | async"
+        [nzPageIndex]="pageIndex"
+        [nzPageSize]="pageSize"
+        (nzPageIndexChange)="onPageIndexChange($event)"
+        (nzPageSizeChange)="onPageSizeChange($event)"
+      >
+        <thead>
+          <tr>
+            <th>{{ 'Supplier Name ' | translate }}</th>
+            <th>{{ 'Title' | translate }}</th>
+
+            <th>{{ 'Complain' | translate }}</th>
+            <th>{{ 'Status' | translate }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="group" *ngFor="let data of basicTable.data; trackBy: trackByFn">
+            <td>{{ data.economicOperatorName | locale }}</td>
+            <td>{{ data.title }}</td>
+
+            <td [innerHTML]="data.contentBody"></td>
+            <td>{{ data.status }}</td>
+            <td>
+              <a routerLink="board/{{ data?.id }}" class="float-right group-hover:visible" nz-button nzType="default" nzSize="small">
+                <i nz-icon nzType="right" nzTheme="outline"></i>
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+    </div>
+  </nz-card>
+</ng-container>
+
+<ng-container *ngIf="viewMode === 'detail'">
+  <router-outlet></router-outlet>
+</ng-container>

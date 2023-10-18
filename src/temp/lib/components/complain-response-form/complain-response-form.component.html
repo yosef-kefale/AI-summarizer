@@ -1,0 +1,120 @@
+<div>
+  <form nz-form nzLayout="vertical" [formGroup]="compliantResponseForm">
+    <nz-form-label nzRequired>
+      <span>
+        Title
+      </span>
+    </nz-form-label>
+    <ng-container>
+      <nz-form-item>
+        <nz-form-control nzHasFeedback nzErrorTip="Title is required">
+          <input nz-input [formControlName]="'title'" />
+        </nz-form-control>
+      </nz-form-item>
+    </ng-container>
+    <nz-divider class="my-2"></nz-divider>
+    <!-- description with locale field -->
+    <nz-form-label nzRequired>
+      <span>
+        {{ 'Response' | translate }}
+      </span>
+    </nz-form-label>
+    <ng-container>
+      <ng-container>
+        <nz-form-item>
+          <nz-form-control nzHasFeedback nzErrorTip="Response is required">
+            <quill-editor [styles]="{ height: '100px' }" [formControl]="compliantResponseForm.controls['response']">
+              <div quill-editor-toolbar>
+                <button type="button" class="ql-bold"></button>
+                <button type="button" class="ql-italic"></button>
+                <button type="button" class="ql-underline"></button>
+                <button type="button" class="ql-list" value="ordered"></button>
+                <button type="button" class="ql-list" value="bullet"></button>
+              </div>
+            </quill-editor>
+          </nz-form-control>
+        </nz-form-item>
+      </ng-container>
+    </ng-container>
+
+    <ng-container>
+      <nz-divider class="my-3"></nz-divider>
+
+      <div class="flex">
+        <!-- <div class="flex-1">
+          <ng-container>
+            <nz-form-item>
+              <nz-form-control>
+                <div class="flex">
+                  <div
+                    class="flex-initial mr-2"
+                    *ngIf="!(compliantResponse && compliantResponse?.id && compliantResponse.status === 'Requested')"
+                  >
+                    <nz-upload [(nzFileList)]="fileList" [nzMultiple]="true" [nzBeforeUpload]="beforeUpload">
+                      <button nz-button>
+                        <i nz-icon nzType="upload"></i>
+                        <span>{{ 'CATALOG.Add_Files' | translate }}</span>
+                      </button>
+                    </nz-upload>
+                  </div>
+                  <div class="flex-initial" *ngIf="compliantResponse && compliantResponse.id">
+                    <li *ngFor="let attachment of compliantResponse?.attachments; trackBy: trackByFn">
+                      <div class="cursor-pointer" (click)="openFile(attachment)">
+                        <i
+                          *ngIf="attachment.fileType === '.pdf'"
+                          nz-icon
+                          [nzType]="'file-pdf'"
+                          nzTheme="outline"
+                          style="color: #d9363e;"
+                        ></i>
+                        <i *ngIf="attachment.fileType !== '.pdf'" nz-icon nzType="file-image" nzTheme="twotone"></i>
+
+                        {{ attachment.fileName }}
+                      </div>
+                    </li>
+                  </div>
+                </div>
+              </nz-form-control>
+            </nz-form-item>
+          </ng-container>
+        </div> -->
+
+        <div class="flex-1">
+          <div class="flex">
+            <!-- <button *ngIf="!compliantResponse?.id" (click)="onUpdate(false)" nz-button nzType="default">
+              <i nz-icon nzType="read" nzTheme="outline"></i> {{ 'SYSTEM.Save_As_Draft' | translate }}
+            </button> -->
+
+            <button
+              *ngIf="
+                currentRole === 'complaint-handling-board-chairperson' &&
+                (!compliantResponse?.id || (compliantResponse && compliantResponse.id && compliantResponse.status === 'Draft'))
+              "
+              (click)="onUpdate(false)"
+              nz-button
+              nzType="primary"
+              class="mx-2"
+            >
+              <i nz-icon nzType="save" nzTheme="outline"></i> {{ 'Submit for Vote' | translate }}
+            </button>
+
+            <button
+              *ngIf="
+                currentRole === 'head-of-procuring-entity' &&
+                (!compliantResponse?.id || (compliantResponse && compliantResponse.id && compliantResponse.status === 'Draft'))
+              "
+              (click)="onUpdate(true)"
+              nz-button
+              nzType="primary"
+              class="mx-2"
+            >
+              <i nz-icon nzType="save" nzTheme="outline"></i> {{ 'Respond' | translate }}
+            </button>
+          </div>
+        </div>
+
+        <div class="flex-initial"></div>
+      </div>
+    </ng-container>
+  </form>
+</div>

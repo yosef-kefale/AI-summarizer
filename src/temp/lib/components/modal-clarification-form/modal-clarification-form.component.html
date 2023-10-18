@@ -1,0 +1,108 @@
+<form nz-form nzLayout="vertical" [formGroup]="clarificationForm">
+  <!-- name with locale field -->
+  <ng-container>
+    <nz-form-label nzRequired>
+      <span>
+        Case reference number
+      </span>
+    </nz-form-label>
+    <ng-container>
+      <nz-form-item>
+        <nz-form-control nzHasFeedback nzErrorTip="This field is required">
+          <input nz-input [formControlName]="'caseReferenceNumber'" />
+        </nz-form-control>
+      </nz-form-item>
+    </ng-container>
+  </ng-container>
+
+  <ng-container>
+    <nz-form-label nzRequired>
+      <span>
+        Title
+      </span>
+    </nz-form-label>
+    <ng-container>
+      <nz-form-item>
+        <nz-form-control nzHasFeedback nzErrorTip="This field is required">
+          <input nz-input [formControlName]="'title'" />
+        </nz-form-control>
+      </nz-form-item>
+    </ng-container>
+  </ng-container>
+  <nz-divider class="my-2"></nz-divider>
+
+  <!-- description with locale field -->
+  <ng-container>
+    <nz-form-label nzRequired>
+      <span>
+        {{ 'Content_Body' | translate }}
+      </span>
+    </nz-form-label>
+    <ng-container>
+      <nz-form-item>
+        <nz-form-control>
+          <quill-editor [formControl]="clarificationForm.controls['contentBody']" [styles]="{ height: '150px' }">
+            <div quill-editor-toolbar>
+              <button type="button" class="ql-bold"></button>
+              <button type="button" class="ql-italic"></button>
+              <button type="button" class="ql-underline"></button>
+              <button type="button" class="ql-list" value="ordered"></button>
+              <button type="button" class="ql-list" value="bullet"></button>
+            </div>
+          </quill-editor>
+        </nz-form-control>
+      </nz-form-item>
+    </ng-container>
+  </ng-container>
+
+  <ng-container *ngIf="currentRole === 'complaint-investigator'">
+    <div>
+      <div>
+        <nz-form-label nzRequired><span>Receiver</span></nz-form-label>
+        <nz-form-item>
+          <nz-form-control nzHasFeedback [nzErrorTip]="'receiver is required'">
+            <nz-select
+              [nzPlaceHolder]="'Select receiver' | translate"
+              nzAllowClear
+              formControlName="requestedTo"
+            >
+              <nz-option *ngFor="let re of receiver; trackBy: trackByFn" nzValue="{{ re?.value }}" nzLabel="{{ re?.name }}"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+  </ng-container>
+</form>
+
+<ng-container *ngIf="currentRole !== 'complaint-investigator'">
+  <nz-card class="w-full">
+    <p class="font-bold mb-1">Please Select Claim Remedy</p>
+    <nz-checkbox-wrapper class="m-2" (nzOnChange)="checkboxSelected($event)">
+      <div nz-row *ngFor="let data of claims">
+        <label nz-checkbox nzValue="{{ data.value }}">{{ data.label }}</label>
+      </div>
+    </nz-checkbox-wrapper>
+    <br />
+    <textarea *ngIf="otherClaimChecked" class="mt-1" rows="6" nz-input [(ngModel)]="inputValue"></textarea>
+  </nz-card>
+</ng-container>
+
+<div class="mt-1">
+  <nz-upload [nzMultiple]="true" [(nzFileList)]="fileList" [nzBeforeUpload]="beforeUpload">
+    <div class="flex justify-between">
+      <button nz-button><i nz-icon nzType="upload"></i><span>Add File</span></button>
+      <div class="ml-3 text-xs text-gray-600">
+        <p>Only image and pdf is supported</p>
+      </div>
+    </div>
+  </nz-upload>
+</div>
+<div *nzModalFooter>
+  <button nz-button nzType="secondary" (click)="onDestroy()">
+    Close
+  </button>
+  <button [disabled]="checkOtherClaimValidation()" (click)="onCreate()" nz-button nzType="primary" class="mx-2">
+    <i nz-icon nzType="save" nzTheme="outline"></i> {{ 'SYSTEM.Submit' | translate }}
+  </button>
+</div>

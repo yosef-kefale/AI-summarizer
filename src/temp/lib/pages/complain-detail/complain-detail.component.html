@@ -1,0 +1,256 @@
+<div
+  *ngIf="
+    currentRole === 'complaint-handling-board-chairperson' ||
+    currentRole === 'complaint-handling-board-secretary' ||
+    currentRole === 'complaint-handling-board-member'
+  "
+>
+  <erp-fe-complain-board-detail [currentRole]="currentRole"></erp-fe-complain-board-detail>
+</div>
+
+<div *ngIf="currentRole === 'head-of-procuring-entity' || currentRole === 'technical-expert' || currentRole === 'procurement-unit-head'">
+  <nz-tabset class="bg-white">
+    <nz-tab [nzTitle]="'Complain'" (nzClick)="complains()">
+      <ng-container *ngIf="!escalated">
+        <div *ngIf="!isResponse">
+          <div
+            *ngIf="
+              complain !== undefined &&
+              complain?.status !== 'responded' &&
+              complain?.status !== 'escalated' &&
+              currentRole === 'head-of-procuring-entity' &&
+              ((complainResponse$ | async)?.items).length === 0
+            "
+            class="flex-1 overflow-y-auto bg-white"
+          >
+            <div
+              *ngIf="currentRole === 'complaint-handling-board-chairperson' || currentRole === 'head-of-procuring-entity'"
+              class="flex items-center justify-end my-2 mr-2"
+            >
+              <button (click)="createResponse()" nz-button nzType="primary">
+                <i nz-icon nzType="plus" nzTheme="outline"></i>{{ 'Response' | translate }}
+              </button>
+            </div>
+          </div>
+          <nz-spin [nzSpinning]="complainDetailLoading$ | async" [nzDelay]="500">
+            <nz-card class="m-1" [nzTitle]="'Complain Request' | translate">
+              <div class="mb-1">
+                <span class="font-black">{{ 'Title' | translate }}:</span>{{ (selectedComplain$ | async)?.title }}
+              </div>
+              <div class="flex">
+                <span class="font-black">{{ 'Content' | translate }}: </span>
+                <div [innerHTML]="(selectedComplain$ | async)?.contentBody"></div>
+              </div>
+              <div class="mt-2 ml-7" *ngFor="let file of (selectedComplain$ | async)?.attachments">
+                <div (click)="openFile(file)">
+                  <span class="cursor-pointer"><b>attachment:</b> {{ file?.file_name }}</span>
+                  <!-- <img src="{{ attachmentEndPoint }}/{{ file?.file_path }}"
+                    class="h-32 w-32 cursor-pointer"
+                    alt="{{ file?.file_path }}" /> -->
+                </div>
+              </div>
+            </nz-card>
+          </nz-spin>
+
+          <nz-spin [nzSpinning]="complainDetailLoading$ | async" [nzDelay]="500">
+            <ng-container *ngIf="((complainResponse$ | async)?.items).length > 0">
+              <nz-card class="m-1" [nzTitle]="'Complain Response' | translate">
+                <div class="mb-1">
+                  <span class="font-black">{{ 'Title' | translate }}:</span>{{ ((complainResponse$ | async)?.items)[0]?.title }}
+                </div>
+                <div class="flex">
+                  <span class="font-black">{{ 'Response' | translate }}: </span>
+                  <div [innerHTML]="((complainResponse$ | async)?.items)[0]?.response"></div>
+                </div>
+              </nz-card>
+            </ng-container>
+          </nz-spin>
+
+          <div *ngIf="(selectedComplain$ | async) !== undefined && (messages$ | async)?.length > 0" class="p-3 bg-white md:m-1">
+            <div class="p-3 font-semibold text-center bg-gray-100 border-t border-b">
+              {{ ((complainResponse$ | async)?.items).length === 0 ? ' Discussion Started' : ' Discussion Closed' }}
+            </div>
+
+            <div class="px-6">
+              <div class="p-4" *ngFor="let item of messages$ | async; trackBy: trackByFn">
+                <div class="flex w-1/2" *ngIf="item.sender !== sender">
+                  <div class="p-3 mx-3 bg-gray-300 rounded-t-lg rounded-r-lg">
+                    <p class="text-base font-semibold">{{ item.sender }}</p>
+                    <div [innerHTML]="item.content"></div>
+                    <div class="flex justify-end text-xs font-semibold">{{ item?.timestamp | date }}</div>
+                  </div>
+                </div>
+
+                <div class="flex justify-end" *ngIf="item.sender === sender">
+                  <div class="w-1/2 p-3 mx-3 text-white rounded-t-lg rounded-l-lg bg-blue-light">
+                    <p class="text-base font-semibold">{{ item.sender }}</p>
+                    <div class="" [innerHTML]="item.content"></div>
+                    <div class="flex justify-end text-xs font-semibold">{{ item?.timestamp | date }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="isResponse">
+          <div *ngIf="complain !== undefined" class="flex-1 overflow-y-auto bg-white">
+            <div class="flex items-center justify-end my-2 mr-2">
+              <button (click)="back()" nz-button nzType="primary">
+                <i nz-icon nzType="left" nzTheme="outline"></i>{{ 'Back' | translate }}
+              </button>
+            </div>
+          </div>
+          <erp-fe-complain-response-form
+            (createResponse)="response($event)"
+            (updateResponse)="updateResponse($event)"
+            [compliant]="selectedComplain$ | async"
+          ></erp-fe-complain-response-form>
+        </div>
+
+        <nz-spin [nzSpinning]="complainDetailLoading$ | async" [nzDelay]="500">
+          <div
+            *ngIf="
+              (selectedComplain$ | async) !== undefined &&
+              (selectedComplain$ | async)?.status !== 'responded' &&
+              (selectedComplain$ | async)?.status !== 'escalated' &&
+              !isResponse
+            "
+          >
+            <ng-container *ngIf="((complainResponse$ | async)?.items).length === 0">
+              <erp-fe-message-form
+                [complainId]="(selectedComplain$ | async)?.id"
+                [receiver]="receiver"
+                [sender]="sender"
+                (send)="onSend($event)"
+              ></erp-fe-message-form>
+            </ng-container>
+          </div>
+        </nz-spin>
+      </ng-container>
+    </nz-tab>
+
+    <nz-tab [nzTitle]="'Escalate'" (nzClick)="listEscalated()">
+      <ng-container *ngIf="escalated && (escalatedItem$ | async) !== undefined">
+        <erp-fe-escalated
+          [complain]="selectedComplain$ | async"
+          [escalatedItem]="escalatedItem$ | async"
+          [escalatedDetailLoading]="escalatedDetailLoading$ | async"
+          [sender]="sender"
+          [receiver]="receiver"
+        ></erp-fe-escalated>
+      </ng-container>
+      <ng-container *ngIf="escalated && (escalatedItem$ | async) === undefined">
+        <shared-empty-state
+          [title]="'Escalated Complain' | translate"
+          [subtitle]="'No Escalated Complain' | translate"
+          [class]="'h-full'"
+        ></shared-empty-state>
+      </ng-container>
+    </nz-tab>
+
+    <nz-tab
+    nzTitle="Letter"
+    (click)="getLetter()"
+    *ngIf="currentRole === 'head-of-procuring-entity'"
+  >
+    <erp-fe-letter-form
+      [letterDetail]="newComplainLetter$ | async"
+      [currentRole]="currentRole"
+    ></erp-fe-letter-form>
+  </nz-tab>
+
+    <nz-tab nzTitle="Clarification" *ngIf="currentRole === 'head-of-procuring-entity'" (nzClick)="listEscalated()">
+      <!-- The following is dispayed if there is no clarification requested -->
+      <ng-container *ngIf="clarificationsList$ | async as clarifications">
+        <ng-container *ngIf="clarifications?.length === 0">
+          <shared-empty-state
+            [title]="'Clarification Request' | translate"
+            [subtitle]="'No Clarification Request' | translate"
+            [class]="'h-full'"
+          ></shared-empty-state>
+        </ng-container>
+
+        <ng-container *ngIf="clarifications?.length !== 0">
+          <nz-collapse nzAccordion class="m-1" *ngIf="selectedComplain$ | async">
+            <ng-container>
+              <ng-container *ngFor="let item of clarifications">
+                <nz-collapse-panel [nzHeader]="('Title : ' | translate) + item?.title" [nzActive]="false">
+                  <!-- TODO button dispayed only if clarificationResponse does not exist -->
+                  <div *ngIf="complain !== undefined && complain?.status !== 'responded' && item?.clarificationResponses?.length === 0" class="flex-1 overflow-y-auto bg-white">
+                    <div class="flex items-center justify-end my-2 mr-2">
+                      <button (click)="createClarificationFormModal(item?.id)" nz-button nzType="primary">
+                        <i nz-icon nzType="plus" nzTheme="outline"></i>{{ 'Response' | translate }}
+                      </button>
+                    </div>
+                  </div>
+                  <nz-card nzType="inner" nzSize="small" class="mb-1" [nzTitle]="'Request' | translate">
+                    <div class="mb-1">
+                      <span class="font-black">{{ 'Title' | translate }}:</span>{{ item?.title }}
+                    </div>
+                    <div class="mb-1" *ngIf="item?.claim">
+                      <span class="font-black">{{ 'Claim' | translate }}:</span>{{ item?.claim }}
+                    </div>
+                    <div [innerHTML]="item?.description"></div>
+                    <div class="mt-2 ml-7">
+                      <div *ngFor="let attach of item?.attachments">
+                        <div (click)="openFile(attach)">
+                          <span class="cursor-pointer"><b>Attachment:</b> {{ attach?.file_name }}</span>
+                          <!-- <img src="{{ attachmentEndPoint }}/{{ file?.file_path }}"
+                                   class="h-32 w-32 cursor-pointer"
+                                   alt="{{ file?.file_path }}" /> -->
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex justify-between px-6 py-1 mt-2 text-xs text-gray-600 bg-gray-100 border-t border-dashed">
+                      <div></div>
+                      <div>
+                        <i nz-icon nzType="tag" nzTheme="outline"></i>
+                        <span>{{ 'Date' | translate }}:</span>
+                        {{ item?.timestamp | date }}
+                      </div>
+                    </div>
+                  </nz-card>
+
+                  <ng-container *ngIf="item?.clarificationResponses?.length > 0">
+                    <ng-container *ngIf="(item?.clarificationResponses)[0] as response">
+                      <nz-card nzTitle nzType="inner" nzSize="small" class="m-1" [nzTitle]="'Clarification Title' | translate">
+                        <nz-card nzType="inner" nzSize="small" class="m-1" [nzTitle]="'Response' | translate">
+                          <div class="mb-1">
+                            <span class="font-black">{{ 'Title' | translate }}:</span>{{ response?.title }}
+                          </div>
+                          <div class="mb-1" *ngIf="item?.claim">
+                            <span class="font-black">{{ 'Claim' | translate }}:</span>{{ response?.claim }}
+                          </div>
+                          <div [innerHTML]="response?.responseDescription"></div>
+                          <div class="mt-2 ml-7">
+                            <div *ngFor="let attach of response?.attachments">
+                              <div (click)="openFile(attach)">
+                                <span class="cursor-pointer"><b>Attachment:</b> {{ attach?.file_name }}</span>
+                                <!-- <img src="{{ attachmentEndPoint }}/{{ file?.file_path }}"
+                                      class="h-32 w-32 cursor-pointer"
+                                      alt="{{ file?.file_path }}" /> -->
+                              </div>
+                            </div>
+                          </div>
+                          <div class="flex justify-between px-6 py-1 mt-2 text-xs text-gray-600 bg-gray-100 border-t border-dashed">
+                            <div></div>
+                            <div>
+                              <i nz-icon nzType="tag" nzTheme="outline"></i>
+                              <span>{{ 'Date' | translate }}:</span>
+                              {{ response?.timestamp | date }}
+                            </div>
+                          </div>
+                        </nz-card>
+                      </nz-card>
+                    </ng-container>
+                  </ng-container>
+                </nz-collapse-panel>
+              </ng-container>
+            </ng-container>
+          </nz-collapse>
+        </ng-container>
+      </ng-container>
+    </nz-tab>
+  </nz-tabset>
+</div>

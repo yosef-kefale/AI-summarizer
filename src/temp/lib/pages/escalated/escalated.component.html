@@ -1,0 +1,116 @@
+<nz-spin [nzSpinning]="(escalatedComplainResponseLoading$ | async) && escalatedComplainResponseLoading$ | async" [nzDelay]="500">
+  <ng-container *ngIf="escalatedItem !== undefined">
+    <nz-card class="m-1" [nzTitle]="'Escalated Complain' | translate">
+      <div class="mb-1">
+        <span class="font-black">{{ 'Title' | translate }}:</span>{{ escalatedItem?.title }}
+      </div>
+      <div class="flex">
+        <span class="font-black">{{ 'Content' | translate }}: </span>
+        <div [innerHTML]="escalatedItem?.contentBody"></div>
+      </div>
+    </nz-card>
+  </ng-container>
+  <ng-container *ngIf="escalatedItem === undefined">
+    <shared-empty-state
+      [title]="'Escalated Complain' | translate"
+      [subtitle]="'No Escalated Complain' | translate"
+      [class]="'h-full'"
+    ></shared-empty-state>
+  </ng-container>
+</nz-spin>
+<nz-spin [nzSpinning]="escalatedComplainResponseLoading$ | async" [nzDelay]="500">
+  <ng-container *ngIf="(escalatedComplainResponse$ | async) !== undefined"
+    ><!-- Response from Board -->
+    <div class="p-3 font-semibold text-center bg-gray-100 border-t border-b">
+      {{ 'Response from Procuring Entity' | translate }}
+    </div>
+    <div class="p-4">
+      <div class="mb-1">
+        <span class="font-black">{{ 'Title' | translate }}:</span>{{ (escalatedComplainResponse$ | async)?.title }}
+      </div>
+      <div class="flex">
+        <span class="font-black">{{ 'Response' | translate }}: </span>
+        <div [innerHTML]="(escalatedComplainResponse$ | async)?.response"></div>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="(escalatedIComplainResponse$ | async)?.items.length === 1">
+    <!-- Response from Board -->
+    <div
+      *ngIf="((escalatedIComplainResponse$ | async)?.items)[0] !== undefined"
+      class="p-3 font-semibold text-center bg-gray-100 border-t border-b"
+    >
+      {{ 'Response from Board' | translate }}
+    </div>
+    <ng-container *ngIf="escalatedIComplainResponse$ | async">
+      <div class="p-4">
+        <div class="mb-1">
+          <span class="font-black">{{ 'Title' | translate }}:</span>{{ ((escalatedIComplainResponse$ | async)?.items)[0]?.title }}
+        </div>
+        
+        <span class="font-black">{{ 'Response' | translate }}: </span>
+
+        <!--<div>[innerHTML]="((escalatedIComplainResponse$ | async)?.items)[0]?.response"></div> -->
+        <div [innerHTML]="splitStringWithNewLine(((escalatedIComplainResponse$ | async)?.items)[0]?.response)"></div>
+      </div>
+    </ng-container>
+  </ng-container>
+
+  <ng-container *ngIf="(escalatedIComplainResponse$ | async)?.items.length > 1">
+    <ng-container *ngFor="let singleEscalatedIComplainResponse of (escalatedIComplainResponse$ | async)?.items; let i = index">
+      <ng-container *ngIf="singleEscalatedIComplainResponse?.status === 'responded'">
+        <!-- Response from Board -->
+        <div class="p-3 font-semibold text-center bg-gray-100 border-t border-b">
+          {{ 'Response from Board' | translate }}
+        </div>
+        <ng-container *ngIf="escalatedIComplainResponse$ | async">
+          <div class="p-4">
+            <div class="mb-1">
+              <span class="font-black">{{ 'Title' | translate }}:</span>{{ singleEscalatedIComplainResponse?.title }}
+            </div>
+            <div class="mt-3 border-b" [innerHTML]="singleEscalatedIComplainResponse?.response"></div>
+          </div>
+        </ng-container>
+      </ng-container>
+    </ng-container>
+  </ng-container>
+  <div *ngIf="escalatedItem !== undefined && (messages$ | async)?.length > 0" class="p-3 bg-white md:m-1">
+    <ng-container *ngIf="(escalatedIComplainResponse$ | async)?.items.length > 1">
+      <ng-container *ngFor="let singleEs of (escalatedIComplainResponse$ | async)?.items">
+        <div *ngIf="singleEs.status !== 'rejected'" class="p-3 font-semibold text-center bg-gray-100 border-t border-b">
+          {{ singleEs?.status === 'responded' ? ' Discussion Closed' : ' Discussion Started' }}
+        </div>
+      </ng-container>
+    </ng-container>
+
+    <ng-container *ngIf="(escalatedIComplainResponse$ | async)?.items.length === 1">
+      <div class="p-3 font-semibold text-center bg-gray-100 border-t border-b">
+        {{ ((escalatedIComplainResponse$ | async)?.items)[0]?.status === 'responded' ? ' Discussion Closed' : ' Discussion Started' }}
+      </div>
+    </ng-container>
+
+    <div class="px-6">
+      <div class="p-4" *ngFor="let item of messages$ | async; trackBy: trackByFn">
+        <div class="flex w-1/2" *ngIf="item.sender !== sender">
+          <div class="p-3 mx-3 bg-gray-300 rounded-t-lg rounded-r-lg">
+            <p class="text-base font-semibold">{{ item.sender }}</p>
+            <div [innerHTML]="item.content"></div>
+            <div class="flex justify-end text-xs font-semibold">{{ item?.timestamp | date }}</div>
+          </div>
+        </div>
+
+        <div class="flex justify-end" *ngIf="item.sender === sender">
+          <div class="w-1/2 p-3 mx-3 text-white rounded-t-lg rounded-l-lg bg-blue-light">
+            <div class="" [innerHTML]="item.content"></div>
+            <div class="flex justify-end text-xs font-semibold">{{ item?.timestamp | date }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="escalatedItem !== undefined && escalatedItem?.status !== 'responded' && (messages$ | async)?.length > 0">
+    <erp-fe-message-form [complainId]="escalatedItem?.id" [sender]="sender" [receiver]="receiver" (send)="onSend($event)">
+    </erp-fe-message-form></div
+></nz-spin>

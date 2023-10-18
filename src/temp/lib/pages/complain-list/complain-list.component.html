@@ -1,0 +1,65 @@
+<div
+  *ngIf="
+    (currentRole === 'head-of-procuring-entity' || currentRole === 'technical-expert' || currentRole === 'procurement-unit-head') &&
+    viewMode === 'list'
+  "
+>
+  <nz-card class="mx-2 mb-3" [nzTitle]="'Complain List' | translate">
+    <div>
+      <nz-table
+        #row
+        nzSize="small"
+        nzSize="small"
+        nzShowSizeChanger
+        [nzFrontPagination]="false"
+        [nzData]="complains$ | async"
+        [nzLoading]="complainsLoading$ | async"
+        [nzTotal]="totalComplain$ | async"
+        [nzPageIndex]="pageIndex"
+        [nzPageSize]="pageSize"
+        (nzPageIndexChange)="onPageIndexChange($event)"
+        (nzPageSizeChange)="onPageSizeChange($event)"
+      >
+        <thead>
+          <tr>
+            <th>{{ 'Supplier Name ' | translate }}</th>
+            <th>{{ 'Title' | translate }}</th>
+
+            <!-- <th>{{ 'Complain' | translate }}</th> -->
+            <th>{{ 'Status' | translate }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="group" *ngFor="let data of row.data; trackBy: trackByFn">
+            <td>{{ data.economicOperatorName | locale }}</td>
+            <td>{{ data.title }}</td>
+
+            <!-- <td [innerHTML]="data.contentBody.substring(0,50)"></td> -->
+            <td>{{ data.status }}</td>
+            <td>
+              <a routerLink="detail/{{ data?.id }}" class="float-right group-hover:visible" nz-button nzType="default" nzSize="small">
+                <i nz-icon nzType="right" nzTheme="outline"></i>
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+    </div>
+  </nz-card>
+</div>
+
+<div
+  *ngIf="
+    (currentRole === 'complaint-handling-board-secretary' ||
+      currentRole === 'complaint-handling-board-member' ||
+      currentRole === 'complaint-handling-board-chairperson' ||
+      currentRole === 'complaint-investigator' ||
+      currentRole === 'complaint-secretary') &&
+    viewMode === 'list'
+  "
+>
+  <erp-fe-complain-board></erp-fe-complain-board>
+</div>
+
+<router-outlet></router-outlet>

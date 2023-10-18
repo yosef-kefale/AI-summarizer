@@ -1,0 +1,61 @@
+<div class="m-1 bg-white">
+  <form nz-form nzLayout="vertical" [formGroup]="messageForm">
+    <ng-container class="md-m-2">
+      <nz-form-label nzRequired>
+        <span>
+          {{ 'Message' | translate }}
+        </span>
+      </nz-form-label>
+      <ng-container>
+        <nz-form-item>
+          <nz-form-control>
+            <quill-editor [formControl]="messageForm.controls['content']" [styles]="{ height: '150px' }">
+              <div quill-editor-toolbar>
+                <button type="button" class="ql-bold"></button>
+                <button type="button" class="ql-italic"></button>
+                <button type="button" class="ql-underline"></button>
+                <button type="button" class="ql-list" value="ordered"></button>
+                <button type="button" class="ql-list" value="bullet"></button>
+              </div>
+            </quill-editor>
+          </nz-form-control>
+        </nz-form-item>
+      </ng-container>
+    </ng-container>
+    <!-- <div class="float-right">
+      <nz-upload [nzMultiple]="true" [(nzFileList)]="fileList" [nzBeforeUpload]="beforeUpload">
+        <div class="flex justify-between">
+          <button nz-button><i nz-icon nzType="upload"></i><span>Add File</span></button>
+          <div class="ml-3 text-xs text-gray-600">
+            <p>Only image and pdf is supported</p>
+          </div>
+        </div>
+      </nz-upload>
+    </div> -->
+
+    <ng-container *ngIf="receiver.length > 1">
+      <div>
+        <div>
+          <nz-form-label nzRequired><span>Receiver</span></nz-form-label>
+          <nz-form-item>
+            <nz-form-control nzHasFeedback [nzErrorTip]="'receiver is required'">
+              <nz-select
+                [nzPlaceHolder]="'Select receiver' | translate"
+                nzAllowClear
+                formControlName="receiver"
+                (ngModelChange)="provinceChange($event)"
+              >
+                <nz-option *ngFor="let re of receiver; trackBy: trackByFn" nzValue="{{ re }}" nzLabel="{{ re }}"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+    </ng-container>
+    <div>
+      <button [disabled]="!messageForm.valid" (click)="onCreate()" nz-button nzType="primary" class="ml-2">
+        <i nz-icon nzType="send" nzTheme="outline"></i> {{ ' Send' | translate }}
+      </button>
+    </div>
+  </form>
+</div>

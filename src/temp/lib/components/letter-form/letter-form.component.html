@@ -1,0 +1,224 @@
+<!-- <ng-container *ngFor="let item of letterDetail?.items"> -->
+<ng-container *ngIf="letterDetail?.total > 0">
+  <div *ngIf="currentRole === 'complaint-investigator'" [ngTemplateOutlet]="letterDetailTemplate"></div>
+  <div *ngIf="currentRole === 'complaint-secretary' && letter?.status !== 'draft'" [ngTemplateOutlet]="letterDetailTemplate"></div>
+
+  <div *ngIf="currentRole === 'head-of-procuring-entity' && letter?.status === 'approved'" [ngTemplateOutlet]="letterDetailTemplate"></div>
+</ng-container>
+<ng-container>
+  <!-- The following is dispayed if there is no letter submited -->
+  <ng-container *ngIf="currentRole === 'complaint-secretary' && (letterDetail?.total === 0 || letter?.status === 'draft')">
+    <shared-empty-state
+      [title]="'Letter Submited' | translate"
+      [subtitle]="'No Letter Submited' | translate"
+      [class]="'h-full'"
+    ></shared-empty-state>
+  </ng-container>
+  <ng-container *ngIf="currentRole === 'head-of-procuring-entity' && (letterDetail?.total === 0 || letter?.status !== 'approved')">
+    <shared-empty-state
+      [title]="'Letter Submited' | translate"
+      [subtitle]="'No Letter Submited' | translate"
+      [class]="'h-full'"
+    ></shared-empty-state>
+  </ng-container>
+
+  <nz-card
+    *ngIf="isCreateEditMode && currentRole === 'complaint-investigator' && (letterDetail?.total === 0 || isEditMode)"
+    nzType="inner"
+    nzSize="small"
+    class="m-1"
+    [nzTitle]="'Create Letter Form' | translate"
+  >
+    <ng-container>
+      <form nz-form nzLayout="vertical" [formGroup]="letterForm">
+        <!-- name with locale field -->
+        <ng-container>
+          <nz-form-label nzRequired>
+            <span>
+              Title
+            </span>
+          </nz-form-label>
+          <ng-container>
+            <nz-form-item>
+              <nz-form-control nzHasFeedback nzErrorTip="This field is required">
+                <input nz-input [formControlName]="'title'" />
+              </nz-form-control>
+            </nz-form-item>
+          </ng-container>
+        </ng-container>
+        <nz-divider class="my-2"></nz-divider>
+
+        <!-- description with locale field -->
+        <ng-container>
+          <nz-form-label nzRequired>
+            <span>
+              {{ 'Content_Body' | translate }}
+            </span>
+          </nz-form-label>
+          <ng-container>
+            <nz-form-item>
+              <nz-form-control>
+                <quill-editor [formControl]="letterForm.controls['contentBody']" [styles]="{ height: '150px' }">
+                  <div quill-editor-toolbar>
+                    <button type="button" class="ql-bold"></button>
+                    <button type="button" class="ql-italic"></button>
+                    <button type="button" class="ql-underline"></button>
+                    <button type="button" class="ql-list" value="ordered"></button>
+                    <button type="button" class="ql-list" value="bullet"></button>
+                  </div>
+                </quill-editor>
+              </nz-form-control>
+            </nz-form-item>
+          </ng-container>
+        </ng-container>
+      </form>
+      <ng-container>
+        <div>
+          <div class="flex items-center justify-end my-2 mr-2">
+            <button
+              *ngIf="letterDetail?.total === 0"
+              [disabled]="!letterForm.valid"
+              (click)="onDraftCreate()"
+              nz-button
+              nzType="primary"
+              class="mx-2"
+            >
+              <i nz-icon nzType="save" nzTheme="outline"></i> {{ 'Save As Draft' | translate }}
+            </button>
+            <button
+              *ngIf="letterDetail?.total === 0"
+              [disabled]="!letterForm.valid"
+              (click)="onSubmitCreate()"
+              nz-button
+              nzType="primary"
+              class="mx-2"
+            >
+              <i nz-icon nzType="save" nzTheme="outline"></i> {{ 'SYSTEM.Submit' | translate }}
+            </button>
+            <button
+              *ngIf="letterDetail?.total > 0"
+              [disabled]="!letterForm.valid"
+              (click)="onDraftUpdate()"
+              nz-button
+              nzType="primary"
+              class="mx-2"
+            >
+              <i nz-icon nzType="save" nzTheme="outline"></i> {{ 'Update' | translate }}
+            </button>
+            <button
+              *ngIf="letterDetail?.total > 0"
+              [disabled]="!letterForm.valid"
+              (click)="onSubmitUpdate()"
+              nz-button
+              nzType="primary"
+              class="mx-2"
+            >
+              <i nz-icon nzType="save" nzTheme="outline"></i> {{ 'SYSTEM.Submit' | translate }}
+            </button>
+          </div>
+        </div>
+      </ng-container>
+    </ng-container>
+  </nz-card>
+  <nz-card
+    *ngIf="currentRole === 'complaint-secretary' && letterDetail?.total > 0 && letter?.status === 'submitted'"
+    nzType="inner"
+    nzSize="small"
+    class="m-1"
+    [nzTitle]="'Adjust or Approve Letter' | translate"
+  >
+    <ng-container>
+      <!-- <div>
+        <nz-radio-group [(ngModel)]="radioValue">
+          <label nz-radio nzValue="Approve">Approve</label>
+          <label nz-radio nzValue="Adjust">Adjust</label>
+        </nz-radio-group>
+      </div> -->
+      <!-- <div *ngIf="radioValue === 'Adjust'" class="w-full"> -->
+      <div class="w-full">
+        <div>
+          <ng-container>
+            <nz-form-label>
+              <span>
+                Remark
+              </span>
+            </nz-form-label>
+            <ng-container>
+              <nz-form-item>
+                <nz-form-control nzHasFeedback>
+                  <nz-input-group><textarea [(ngModel)]="remark" nz-input rows="6"> </textarea></nz-input-group>
+                </nz-form-control>
+              </nz-form-item>
+            </ng-container>
+          </ng-container>
+        </div>
+      </div>
+      <div>
+        <div class="flex items-center justify-end my-2 mr-2">
+          <button [disabled]="saveButtonDisabled()" (click)="onLetterAdjustStatusUpdate()" nz-button nzType="primary" class="mx-2">
+            <i nz-icon nzType="save" nzTheme="outline"></i> {{ 'Adjust' | translate }}
+          </button>
+          <button [disabled]="saveButtonDisabled()" (click)="onLetterApproveStatusUpdate()" nz-button nzType="primary" class="mx-2">
+            <i nz-icon nzType="save" nzTheme="outline"></i> {{ 'Approve' | translate }}
+          </button>
+        </div>
+        <!-- <button [disabled]="saveButtonDisabled()" nz-button nzType="primary" (click)="onLetterStatusUpdate()">
+          <i nz-icon nzType="plus-circle" nzTheme="outline"></i>Save
+        </button> -->
+      </div>
+    </ng-container>
+  </nz-card>
+</ng-container>
+
+<ng-template #letterDetailTemplate>
+  <nz-card nzType="inner" nzSize="small" class="m-1" [nzTitle]="'Letter detail' | translate" [nzExtra]="letterTemplate">
+    <ng-container>
+      <div class="mb-1">
+        <span class="font-bold">{{ 'Subject ' | translate }}: </span>{{ letter?.title }}
+      </div>
+
+      <ng-container>
+        <span class="font-bold">{{ 'Body ' | translate }}</span>
+        <div [innerHTML]="letter?.description"></div>
+      </ng-container>
+
+      <div class="mb-1" *ngIf="letter?.remark">
+        <span class="font-bold">{{ 'Remark ' | translate }}: </span>{{ letter?.remark }}
+      </div>
+
+      <div class="flex justify-between px-6 py-1 mt-2 text-xs text-gray-600 bg-gray-100 border-t border-dashed">
+        <div>
+          <i nz-icon nzType="clock-circle" nzTheme="outline"> </i>
+          <span>{{ ' Status ' | translate }}:</span>
+          {{ letter?.status }}
+        </div>
+        <div>
+          <i nz-icon nzType="tag" nzTheme="outline"></i>
+          <span>{{ 'Created Date' | translate }}:</span>
+          {{ letter?.createdOn | date }}
+        </div>
+        <div *ngIf="letter?.status === 'approved'">
+          <i nz-icon nzType="tag" nzTheme="outline"></i>
+          <span>{{ 'Approved Date' | translate }}:</span>
+          {{ letter?.approvedOn | date }}
+        </div>
+      </div>
+    </ng-container>
+  </nz-card>
+</ng-template>
+<!-- <button nz-button nzType="primary" (click)="onLetterApproveClick('Adust')"> -->
+<ng-template #letterTemplate>
+  <ng-container *ngIf="currentRole === 'complaint-investigator' && (letter?.status === 'draft' || letter?.status === 'adjusted')">
+    <ng-container>
+      <button
+        nz-button
+        [style.background-color]="'#0073CF'"
+        [style.color]="'white'"
+        [style.border-color]="'#0073CF'"
+        (click)="onLetterEdit(true)"
+      >
+        <i nz-icon nzType="edit" nzTheme="outline"></i>Edit
+      </button>
+    </ng-container>
+  </ng-container>
+</ng-template>
